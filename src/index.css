@@ -4,6 +4,34 @@
   box-sizing: border-box;
 }
 
+/* ---- Theme variables (light mode = original design) ---- */
+
+body {
+  --text: #fff;
+  --bg-color: #667eea;
+  --chip-bg: rgba(255, 255, 255, 0.2);
+  --chip-hover: rgba(255, 255, 255, 0.35);
+  --solid-btn-bg: #fff;
+  --solid-btn-text: #764ba2;
+  --card-back-gradient: linear-gradient(135deg, #ffffff, #e8e6ff);
+  --question-color: #764ba2;
+  --card-front-gradient: linear-gradient(135deg, #ffe259, #ffa751);
+  --matched-gradient: linear-gradient(135deg, #84fab0, #8fd3f4);
+}
+
+body.theme-dark {
+  --text: #efeaff;
+  --bg-color: #17112b;
+  --chip-bg: rgba(255, 255, 255, 0.09);
+  --chip-hover: rgba(255, 255, 255, 0.18);
+  --solid-btn-bg: #c9b8ff;
+  --solid-btn-text: #241a4d;
+  --card-back-gradient: linear-gradient(135deg, #372b63, #251c49);
+  --question-color: #c9b8ff;
+  --card-front-gradient: linear-gradient(135deg, #d99a24, #bf6418);
+  --matched-gradient: linear-gradient(135deg, #2f9e6e, #2b7fa8);
+}
+
 body {
   font-family:
     'Segoe UI',
@@ -11,12 +39,39 @@ body {
     -apple-system,
     sans-serif;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-  background-attachment: fixed;
+  background-color: var(--bg-color);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+
+/* Two fixed layers behind the page let the gradient crossfade smoothly */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  transition: opacity 0.4s ease;
+}
+
+body::before {
+  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+  opacity: 1;
+}
+
+body::after {
+  background: linear-gradient(135deg, #1d1538, #17112b, #2b1a45);
+  opacity: 0;
+}
+
+body.theme-dark::before {
+  opacity: 0;
+}
+
+body.theme-dark::after {
+  opacity: 1;
 }
 
 .app {
@@ -26,7 +81,7 @@ body {
 }
 
 h1 {
-  color: #fff;
+  color: var(--text);
   font-size: clamp(1.6rem, 6vw, 2.4rem);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   margin-bottom: 10px;
@@ -42,12 +97,15 @@ h1 {
 
 .moves {
   display: inline-block;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  background: var(--chip-bg);
   padding: 8px 22px;
   border-radius: 999px;
   font-size: 1.05rem;
   font-weight: 600;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease;
 }
 
 .difficulty {
@@ -62,24 +120,26 @@ h1 {
   padding: 8px 18px;
   border: none;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: var(--chip-bg);
+  color: var(--text);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition:
-    background 0.15s ease,
+    background 0.4s ease,
+    color 0.4s ease,
     transform 0.15s ease;
 }
 
 .difficulty button:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--chip-hover);
   transform: translateY(-1px);
 }
 
-.difficulty button.active {
-  background: #fff;
-  color: #764ba2;
+.difficulty button.active,
+.difficulty button.theme-toggle {
+  background: var(--solid-btn-bg);
+  color: var(--solid-btn-text);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -144,21 +204,23 @@ h1 {
   backface-visibility: hidden;
 
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+
+  transition: background 0.4s ease;
 }
 
 .card-back {
-  background: linear-gradient(135deg, #ffffff, #e8e6ff);
+  background: var(--card-back-gradient);
 }
 
 .card-back::after {
   content: '?';
-  color: #764ba2;
+  color: var(--question-color);
   font-size: 1.8rem;
   font-weight: 800;
 }
 
 .card-front {
-  background: linear-gradient(135deg, #ffe259, #ffa751);
+  background: var(--card-front-gradient);
   font-size: clamp(1.8rem, 8vw, 2.8rem);
   transform: rotateY(180deg);
 }
@@ -169,7 +231,7 @@ h1 {
 }
 
 .card.matched .card-front {
-  background: linear-gradient(135deg, #84fab0, #8fd3f4);
+  background: var(--matched-gradient);
 }
 
 .restart {
@@ -177,13 +239,15 @@ h1 {
   padding: 12px 34px;
   border: none;
   border-radius: 999px;
-  background: #fff;
-  color: #764ba2;
+  background: var(--solid-btn-bg);
+  color: var(--solid-btn-text);
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   transition:
+    background 0.4s ease,
+    color 0.4s ease,
     transform 0.15s ease,
     box-shadow 0.15s ease;
 }

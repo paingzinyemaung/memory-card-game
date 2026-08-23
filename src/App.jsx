@@ -56,6 +56,15 @@ function formatTime(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
+function loadTheme() {
+  try {
+    const saved = localStorage.getItem('memory-theme')
+    return saved === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 export default function App() {
   const [difficulty, setDifficulty] = useState('easy')
   const [cards, setCards] = useState(() =>
@@ -68,8 +77,18 @@ export default function App() {
   const [seconds, setSeconds] = useState(0)
   const [best, setBest] = useState(() => loadBest('easy'))
   const [newBest, setNewBest] = useState(false)
+  const [theme, setTheme] = useState(loadTheme)
 
   const hasWon = cards.every((card) => card.matched)
+
+  useEffect(() => {
+    document.body.classList.toggle('theme-dark', theme === 'dark')
+    localStorage.setItem('memory-theme', theme)
+  }, [theme])
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
 
   useEffect(() => {
     if (!started || hasWon) return
@@ -156,6 +175,9 @@ export default function App() {
       <h1>Memory Card Game</h1>
 
       <div className="difficulty">
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+        </button>
         {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
           <button
             key={key}
