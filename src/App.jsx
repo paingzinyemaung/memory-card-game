@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const EMOJIS = [
   '🐶',
@@ -78,6 +78,7 @@ export default function App() {
   const [best, setBest] = useState(() => loadBest('easy'))
   const [newBest, setNewBest] = useState(false)
   const [theme, setTheme] = useState(loadTheme)
+  const restartRef = useRef(null)
 
   const hasWon = cards.every((card) => card.matched)
 
@@ -85,6 +86,12 @@ export default function App() {
     document.body.classList.toggle('theme-dark', theme === 'dark')
     localStorage.setItem('memory-theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    if (hasWon && restartRef.current) {
+      restartRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [hasWon])
 
   function toggleTheme() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
@@ -172,12 +179,23 @@ export default function App() {
 
   return (
     <div className="app">
-      <h1>Memory Card Game</h1>
+      <div className="title-row">
+        <h1>Memory Card Game</h1>
+        <button
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={
+            theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+          }
+          title={
+            theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'
+          }
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+      </div>
 
       <div className="difficulty">
-        <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
-        </button>
         {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
           <button
             key={key}
@@ -200,12 +218,14 @@ export default function App() {
         </p>
       </div>
 
-      {hasWon && (
-        <div className="congrats">
-          🎉 Congratulations! You won in {moves} moves (
-          {formatTime(seconds)})!{newBest && ' New best score!'}
-        </div>
-      )}
+      <div className="message-slot">
+        {hasWon && (
+          <div className="congrats">
+            🎉 Congratulations! You won in {moves} moves (
+            {formatTime(seconds)})!{newBest && ' New best score!'}
+          </div>
+        )}
+      </div>
 
       <div className={`board ${difficulty}`}>
         {cards.map((card, index) => (
@@ -224,7 +244,11 @@ export default function App() {
         ))}
       </div>
 
-      <button className="restart" onClick={() => startGame(difficulty)}>
+      <button
+        ref={restartRef}
+        className={`restart${hasWon ? ' highlight' : ''}`}
+        onClick={() => startGame(difficulty)}
+      >
         Restart Game
       </button>
     </div>

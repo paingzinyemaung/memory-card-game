@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 
-/* ---- Theme variables (light mode = original design) ---- */
+/* ---- Theme variables (light mode = original colorful design) ---- */
 
 body {
   --text: #fff;
@@ -14,22 +14,35 @@ body {
   --solid-btn-bg: #fff;
   --solid-btn-text: #764ba2;
   --card-back-gradient: linear-gradient(135deg, #ffffff, #e8e6ff);
+  --card-border: transparent;
   --question-color: #764ba2;
   --card-front-gradient: linear-gradient(135deg, #ffe259, #ffa751);
   --matched-gradient: linear-gradient(135deg, #84fab0, #8fd3f4);
+  --shadow-color: rgba(0, 0, 0, 0.18);
+  --focus-color: rgba(255, 255, 255, 0.95);
 }
 
 body.theme-dark {
   --text: #efeaff;
   --bg-color: #17112b;
-  --chip-bg: rgba(255, 255, 255, 0.09);
-  --chip-hover: rgba(255, 255, 255, 0.18);
+  --chip-bg: rgba(255, 255, 255, 0.1);
+  --chip-hover: rgba(255, 255, 255, 0.2);
   --solid-btn-bg: #c9b8ff;
   --solid-btn-text: #241a4d;
   --card-back-gradient: linear-gradient(135deg, #372b63, #251c49);
+  --card-border: rgba(255, 255, 255, 0.09);
   --question-color: #c9b8ff;
   --card-front-gradient: linear-gradient(135deg, #d99a24, #bf6418);
   --matched-gradient: linear-gradient(135deg, #2f9e6e, #2b7fa8);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --focus-color: #c9b8ff;
+}
+
+/* ---- Page shell ---- */
+
+html,
+body {
+  overflow-x: hidden;
 }
 
 body {
@@ -39,11 +52,23 @@ body {
     -apple-system,
     sans-serif;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-color);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  flex-direction: column;
+  padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+}
+
+/* One centered container: max-width + margin-inline auto can never fail */
+.app {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  text-align: center;
 }
 
 /* Two fixed layers behind the page let the gradient crossfade smoothly */
@@ -62,7 +87,7 @@ body::before {
 }
 
 body::after {
-  background: linear-gradient(135deg, #1d1538, #17112b, #2b1a45);
+  background: linear-gradient(135deg, #232048, #171233, #33205c);
   opacity: 0;
 }
 
@@ -74,100 +99,184 @@ body.theme-dark::after {
   opacity: 1;
 }
 
-.app {
-  width: 100%;
-  max-width: 480px;
-  text-align: center;
+/* ---- Header: title + theme toggle in normal flow (never overlap) ---- */
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: clamp(10px, 2vw, 14px);
 }
 
 h1 {
   color: var(--text);
-  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  font-size: clamp(1.45rem, 4.5vw + 0.5rem, 2.3rem);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  margin-bottom: 10px;
+  transition: color 0.4s ease;
 }
 
-.hud {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.moves {
-  display: inline-block;
-  color: var(--text);
-  background: var(--chip-bg);
-  padding: 8px 22px;
+.theme-toggle {
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
   border-radius: 999px;
-  font-size: 1.05rem;
-  font-weight: 600;
+  background: var(--chip-bg);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
     background 0.4s ease,
-    color 0.4s ease;
+    transform 0.15s ease;
 }
+
+.theme-toggle:hover {
+  background: var(--chip-hover);
+}
+
+.theme-toggle:active {
+  transform: scale(0.92);
+}
+
+@media (min-width: 481px) {
+  /* Tablet and up: title on the left, toggle opposite it */
+  .title-row {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  h1 {
+    flex: 1;
+    text-align: left;
+  }
+}
+
+/* ---- Difficulty buttons ---- */
 
 .difficulty {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: clamp(12px, 2vw, 16px);
 }
 
 .difficulty button {
+  min-height: 44px;
   padding: 8px 18px;
   border: none;
   border-radius: 999px;
   background: var(--chip-bg);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
   font-weight: 600;
   cursor: pointer;
   transition:
     background 0.4s ease,
     color 0.4s ease,
+    box-shadow 0.4s ease,
     transform 0.15s ease;
 }
 
 .difficulty button:hover {
   background: var(--chip-hover);
-  transform: translateY(-1px);
 }
 
-.difficulty button.active,
-.difficulty button.theme-toggle {
+.difficulty button:active {
+  transform: scale(0.96);
+}
+
+.difficulty button.active {
   background: var(--solid-btn-bg);
   color: var(--solid-btn-text);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+/* ---- HUD chips (fixed height so the ticking timer never shifts layout) ---- */
+
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.moves {
+  flex: 1 1 auto;
+  max-width: 220px;
+  display: inline-block;
+  color: var(--text);
+  background: var(--chip-bg);
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: clamp(0.85rem, 2.5vw, 1.02rem);
+  font-weight: 600;
+  transition:
+    background 0.4s ease,
+    color 0.4s ease;
+}
+
+/* ---- Message slot: reserved height so the win banner never shifts layout ---- */
+
+.message-slot {
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
 }
 
 .congrats {
   background: linear-gradient(135deg, #f6d365, #fda085);
   color: #6b3410;
   font-weight: 700;
-  font-size: 1.1rem;
-  padding: 14px 18px;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  font-size: clamp(0.92rem, 2.5vw, 1.08rem);
+  padding: 10px 16px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px var(--shadow-color);
   animation: pop 0.4s ease;
-  margin-bottom: 16px;
 }
+
+/* ---- Card board (mobile-first columns) ---- */
 
 .board {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: clamp(8px, 2vw, 12px);
+  width: 100%;
+  margin-inline: auto;
+}
+
+.board.easy,
+.board.medium {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .board.hard {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
-@media (max-width: 520px) {
+@media (min-width: 481px) {
+  .board.easy,
+  .board.medium {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 560px;
+  }
+
   .board.hard {
     grid-template-columns: repeat(4, 1fr);
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .board.hard {
+    grid-template-columns: repeat(6, 1fr);
   }
 }
 
@@ -200,12 +309,16 @@ h1 {
   align-items: center;
   justify-content: center;
   border-radius: 14px;
+  border: 1px solid var(--card-border);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 10px var(--shadow-color);
 
-  transition: background 0.4s ease;
+  transition:
+    background 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
 }
 
 .card-back {
@@ -215,13 +328,13 @@ h1 {
 .card-back::after {
   content: '?';
   color: var(--question-color);
-  font-size: 1.8rem;
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
   font-weight: 800;
 }
 
 .card-front {
   background: var(--card-front-gradient);
-  font-size: clamp(1.8rem, 8vw, 2.8rem);
+  font-size: clamp(1.5rem, 6vw, 2.6rem);
   transform: rotateY(180deg);
 }
 
@@ -234,31 +347,50 @@ h1 {
   background: var(--matched-gradient);
 }
 
+/* ---- Restart button ---- */
+
 .restart {
-  margin-top: 20px;
-  padding: 12px 34px;
+  margin-top: clamp(14px, 2.5vw, 20px);
+  margin-inline: auto;
+  display: block;
+  min-height: 48px;
+  padding: 11px 32px;
   border: none;
   border-radius: 999px;
   background: var(--solid-btn-bg);
   color: var(--solid-btn-text);
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px var(--shadow-color);
   transition:
     background 0.4s ease,
     color 0.4s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.4s ease,
+    transform 0.15s ease;
 }
 
 .restart:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
 
 .restart:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.97);
+}
+
+.restart.highlight {
+  animation: glow-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+  }
 }
 
 @keyframes pop {
@@ -269,5 +401,67 @@ h1 {
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* ---- Keyboard accessibility ---- */
+
+button:focus-visible {
+  outline: 3px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* ---- Landscape / short viewports: compact chrome + wider boards that fit ---- */
+
+@media (max-height: 540px) {
+  h1 {
+    font-size: clamp(1.15rem, 4vh, 1.5rem);
+  }
+
+  .difficulty button {
+    min-height: 40px;
+    padding: 6px 14px;
+  }
+
+  .moves {
+    padding: 6px 12px;
+  }
+
+  .message-slot {
+    min-height: 52px;
+  }
+
+  .restart {
+    margin-top: 10px;
+    min-height: 44px;
+    padding: 9px 26px;
+  }
+
+  /* Wide grids keep boards short; caps relate board width to the height
+     left over once headers/buttons take theirs (rows/cols ratios). */
+  .board.easy {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: min(100%, calc((100dvh - 240px) * 2));
+  }
+
+  .board.medium {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: min(100%, calc(100dvh - 240px));
+  }
+
+  .board.hard {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: min(100%, calc((100dvh - 240px) / 0.67));
+  }
+}
+
+/* ---- Respect users who prefer less motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }
