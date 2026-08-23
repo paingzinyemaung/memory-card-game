@@ -275,7 +275,9 @@ h1 {
   );
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--card));
-  grid-auto-rows: var(--card); /* keeps every row identical */
+  /* No explicit row template: rows auto-size to the card's own square
+     height (width x aspect-ratio), so tracks can never collapse or
+     overlap regardless of how percentages resolve in the row axis. */
   justify-content: center;
   align-content: center;
   gap: var(--board-gap);
@@ -305,7 +307,12 @@ h1 {
 }
 
 .card {
-  aspect-ratio: 1;
+  /* The outer card is the real layout box: width comes from its grid
+     column, height from the square aspect ratio. The absolutely
+     positioned faces inside .card-inner can never affect row height. */
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border: none;
   padding: 0;
   background: none;
