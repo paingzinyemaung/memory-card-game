@@ -283,8 +283,8 @@ h1 {
 }
 
 .board.easy {
-  --cols: 2;
-  --rows: 4;
+  --cols: 4;
+  --rows: 2;
 }
 
 .board.medium {
@@ -295,13 +295,6 @@ h1 {
 .board.hard {
   --cols: 4;
   --rows: 6;
-}
-
-@media (min-width: 481px) {
-  .board.easy {
-    --cols: 4;
-    --rows: 2;
-  }
 }
 
 @media (min-width: 1025px) {
