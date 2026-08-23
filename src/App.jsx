@@ -1,6 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-const EMOJIS = ['🐶', '🐱', '🦊', '🐼', '🦁', '🐸', '🐵', '🐷']
+const EMOJIS = [
+  '🐶',
+  '🐱',
+  '🦊',
+  '🐼',
+  '🦁',
+  '🐸',
+  '🐵',
+  '🐷',
+  '🐨',
+  '🐰',
+  '🦉',
+  '🐢',
+]
+
+const DIFFICULTIES = {
+  easy: { label: 'Easy', pairs: 4 },
+  medium: { label: 'Medium', pairs: 8 },
+  hard: { label: 'Hard', pairs: 12 },
+}
 
 function shuffle(list) {
   const result = [...list]
@@ -11,8 +30,9 @@ function shuffle(list) {
   return result
 }
 
-function createDeck() {
-  const cards = [...EMOJIS, ...EMOJIS].map((emoji, id) => ({
+function createDeck(pairs) {
+  const emojis = EMOJIS.slice(0, pairs)
+  const cards = [...emojis, ...emojis].map((emoji, id) => ({
     id,
     emoji,
     flipped: false,
@@ -21,18 +41,64 @@ function createDeck() {
   return shuffle(cards)
 }
 
+function loadBest(difficulty) {
+  try {
+    const raw = localStorage.getItem(`memory-best-${difficulty}`)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
 export default function App() {
-  const [cards, setCards] = useState(createDeck)
+  const [difficulty, setDifficulty] = useState('easy')
+  const [cards, setCards] = useState(() =>
+    createDeck(DIFFICULTIES.easy.pairs)
+  )
   const [flipped, setFlipped] = useState([])
   const [moves, setMoves] = useState(0)
   const [lock, setLock] = useState(false)
+  const [started, setStarted] = useState(false)
+  const [seconds, setSeconds] = useState(0)
+  const [best, setBest] = useState(() => loadBest('easy'))
+  const [newBest, setNewBest] = useState(false)
 
   const hasWon = cards.every((card) => card.matched)
+
+  useEffect(() => {
+    if (!started || hasWon) return
+    const interval = setInterval(() => setSeconds((s) => s + 1), 1000)
+    return () => clearInterval(interval)
+  }, [started, hasWon])
+
+  function recordBest(finalMoves, finalSeconds) {
+    const current = loadBest(difficulty)
+    if (
+      !current ||
+      finalMoves < current.moves ||
+      (finalMoves === current.moves && finalSeconds < current.seconds)
+    ) {
+      localStorage.setItem(
+        `memory-best-${difficulty}`,
+        JSON.stringify({ moves: finalMoves, seconds: finalSeconds })
+      )
+      setBest({ moves: finalMoves, seconds: finalSeconds })
+      setNewBest(true)
+    }
+  }
 
   function handleCardClick(index) {
     if (lock) return
     if (cards[index].flipped || cards[index].matched) return
     if (flipped.length === 2) return
+
+    setStarted(true)
 
     const nextFlipped = [...flipped, index]
     setCards((prev) =>
@@ -44,7 +110,7 @@ export default function App() {
       return
     }
 
-    setMoves((prev) => prev + 1)
+    setMoves(moves + 1)
     setLock(true)
 
     const [first, second] = nextFlipped
@@ -57,6 +123,9 @@ export default function App() {
       )
       setFlipped([])
       setLock(false)
+      if (cards.filter((card) => card.matched).length === cards.length - 2) {
+        recordBest(moves + 1, seconds)
+      }
     } else {
       setTimeout(() => {
         setCards((prev) =>
@@ -70,25 +139,53 @@ export default function App() {
     }
   }
 
-  function restart() {
-    setCards(createDeck())
+  function startGame(selectedDifficulty) {
+    setDifficulty(selectedDifficulty)
+    setCards(createDeck(DIFFICULTIES[selectedDifficulty].pairs))
     setFlipped([])
     setMoves(0)
     setLock(false)
+    setStarted(false)
+    setSeconds(0)
+    setNewBest(false)
+    setBest(loadBest(selectedDifficulty))
   }
 
   return (
     <div className="app">
       <h1>Memory Card Game</h1>
-      <p className="moves">Moves: {moves}</p>
+
+      <div className="difficulty">
+        {Object.entries(DIFFICULTIES).map(([key, { label }]) => (
+          <button
+            key={key}
+            className={key === difficulty ? 'active' : ''}
+            onClick={() => startGame(key)}
+          >
+            {label} ({DIFFICULTIES[key].pairs})
+          </button>
+        ))}
+      </div>
+
+      <div className="hud">
+        <p className="moves">Moves: {moves}</p>
+        <p className="moves time">Time: {formatTime(seconds)}</p>
+        <p className="moves best">
+          Best:{' '}
+          {best
+            ? `${best.moves} moves · ${formatTime(best.seconds)}`
+            : '—'}
+        </p>
+      </div>
 
       {hasWon && (
         <div className="congrats">
-          🎉 Congratulations! You won in {moves} moves!
+          🎉 Congratulations! You won in {moves} moves (
+          {formatTime(seconds)})!{newBest && ' New best score!'}
         </div>
       )}
 
-      <div className="board">
+      <div className={`board ${difficulty}`}>
         {cards.map((card, index) => (
           <button
             key={card.id}
@@ -105,7 +202,7 @@ export default function App() {
         ))}
       </div>
 
-      <button className="restart" onClick={restart}>
+      <button className="restart" onClick={() => startGame(difficulty)}>
         Restart Game
       </button>
     </div>
