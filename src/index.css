@@ -38,6 +38,16 @@ body.theme-dark {
   --focus-color: #c9b8ff;
 }
 
+/* ---- Layout variables ---- */
+
+:root {
+  --radius: 16px;
+  --radius-sm: 12px;
+  --pill-radius: 999px;
+  --page-pad: 16px;
+  --section-gap: 8px;
+}
+
 /* ---- Page shell ---- */
 
 html,
@@ -56,14 +66,14 @@ body {
   background-color: var(--bg-color);
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  padding-top: calc(16px + env(safe-area-inset-top));
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
-  padding-left: calc(16px + env(safe-area-inset-left));
-  padding-right: calc(16px + env(safe-area-inset-right));
+  padding: var(--page-pad);
+  padding-top: calc(var(--page-pad) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--page-pad) + env(safe-area-inset-bottom));
+  padding-left: calc(var(--page-pad) + env(safe-area-inset-left));
+  padding-right: calc(var(--page-pad) + env(safe-area-inset-right));
 }
 
-/* One centered container: max-width + margin-inline auto can never fail */
+/* One centered container: max-width + margin auto can never fail */
 .app {
   width: 100%;
   max-width: 1100px;
@@ -107,12 +117,12 @@ body.theme-dark::after {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-bottom: clamp(10px, 2vw, 14px);
+  margin-bottom: var(--section-gap);
 }
 
 h1 {
   color: var(--text);
-  font-size: clamp(1.45rem, 4.5vw + 0.5rem, 2.3rem);
+  font-size: clamp(1.35rem, 4vw + 0.4rem, 2rem);
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   transition: color 0.4s ease;
 }
@@ -121,7 +131,7 @@ h1 {
   min-width: 44px;
   min-height: 44px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--pill-radius);
   background: var(--chip-bg);
   color: var(--text);
   font-size: 1.25rem;
@@ -163,17 +173,17 @@ h1 {
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: clamp(12px, 2vw, 16px);
+  margin-bottom: var(--section-gap);
 }
 
 .difficulty button {
-  min-height: 44px;
-  padding: 8px 18px;
+  min-height: 42px;
+  padding: 7px 16px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--pill-radius);
   background: var(--chip-bg);
   color: var(--text);
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-size: clamp(0.88rem, 2.5vw, 0.98rem);
   font-weight: 600;
   cursor: pointer;
   transition:
@@ -205,7 +215,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: var(--section-gap);
 }
 
 .moves {
@@ -214,9 +224,9 @@ h1 {
   display: inline-block;
   color: var(--text);
   background: var(--chip-bg);
-  padding: 9px 14px;
-  border-radius: 999px;
-  font-size: clamp(0.85rem, 2.5vw, 1.02rem);
+  padding: 8px 13px;
+  border-radius: var(--pill-radius);
+  font-size: clamp(0.82rem, 2.5vw, 0.98rem);
   font-weight: 600;
   transition:
     background 0.4s ease,
@@ -226,57 +236,78 @@ h1 {
 /* ---- Message slot: reserved height so the win banner never shifts layout ---- */
 
 .message-slot {
-  min-height: 56px;
+  min-height: 44px;
   display: grid;
   place-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--section-gap);
 }
 
 .congrats {
   background: linear-gradient(135deg, #f6d365, #fda085);
   color: #6b3410;
   font-weight: 700;
-  font-size: clamp(0.92rem, 2.5vw, 1.08rem);
-  padding: 10px 16px;
-  border-radius: 14px;
+  font-size: clamp(0.88rem, 2.5vw, 1.02rem);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
   box-shadow: 0 6px 20px var(--shadow-color);
   animation: pop 0.4s ease;
 }
 
-/* ---- Card board (mobile-first columns) ---- */
+/* ---- Card board ----
+   Card size is chosen as the SMALLEST of three limits:
+   1. width share  -> (container width - gaps) / columns
+   2. height share -> (leftover viewport height - gaps) / rows
+   3. a maximum cap so cards never get huge on big screens
+   Because each difficulty only declares --cols / --rows, the whole
+   board ALWAYS fits in the viewport without scrolling. */
 
 .board {
+  --cols: 4;
+  --rows: 4;
+  --ui-space: 300px; /* vertical budget for header/controls/button */
+  --board-gap: clamp(6px, 1.2vw, 10px);
+  --card-max: 118px;
+  --card: min(
+    calc((100% - (var(--cols) - 1) * var(--board-gap)) / var(--cols)),
+    calc((100dvh - var(--ui-space) - (var(--rows) - 1) * var(--board-gap)) /
+          var(--rows)),
+    var(--card-max)
+  );
   display: grid;
-  gap: clamp(8px, 2vw, 12px);
+  grid-template-columns: repeat(var(--cols), var(--card));
+  grid-auto-rows: var(--card); /* keeps every row identical */
+  justify-content: center;
+  align-content: center;
+  gap: var(--board-gap);
   width: 100%;
-  margin-inline: auto;
 }
 
-.board.easy,
+.board.easy {
+  --cols: 2;
+  --rows: 4;
+}
+
 .board.medium {
-  grid-template-columns: repeat(2, 1fr);
+  --cols: 4;
+  --rows: 4;
 }
 
 .board.hard {
-  grid-template-columns: repeat(3, 1fr);
+  --cols: 4;
+  --rows: 6;
 }
 
 @media (min-width: 481px) {
-  .board.easy,
-  .board.medium {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: 560px;
-  }
-
-  .board.hard {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: 720px;
+  .board.easy {
+    --cols: 4;
+    --rows: 2;
   }
 }
 
 @media (min-width: 1025px) {
   .board.hard {
-    grid-template-columns: repeat(6, 1fr);
+    --cols: 6;
+    --rows: 4;
   }
 }
 
@@ -308,7 +339,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--card-border);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -328,13 +359,13 @@ h1 {
 .card-back::after {
   content: '?';
   color: var(--question-color);
-  font-size: clamp(1.3rem, 5vw, 1.8rem);
+  font-size: clamp(1rem, 4.5vw, 1.7rem);
   font-weight: 800;
 }
 
 .card-front {
   background: var(--card-front-gradient);
-  font-size: clamp(1.5rem, 6vw, 2.6rem);
+  font-size: clamp(1.2rem, 6vw, 2.4rem);
   transform: rotateY(180deg);
 }
 
@@ -347,19 +378,19 @@ h1 {
   background: var(--matched-gradient);
 }
 
-/* ---- Restart button ---- */
+/* ---- Restart button (kept close to the board) ---- */
 
 .restart {
-  margin-top: clamp(14px, 2.5vw, 20px);
+  margin-top: clamp(10px, 1.5vw, 14px);
   margin-inline: auto;
   display: block;
-  min-height: 48px;
-  padding: 11px 32px;
+  min-height: 46px;
+  padding: 10px 30px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--pill-radius);
   background: var(--solid-btn-bg);
   color: var(--solid-btn-text);
-  font-size: 1.02rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 6px 16px var(--shadow-color);
@@ -411,47 +442,66 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* ---- Landscape / short viewports: compact chrome + wider boards that fit ---- */
+/* ---- Short screens: tighter chrome + smaller vertical budget ---- */
 
-@media (max-height: 540px) {
+@media (max-height: 620px) {
+  :root {
+    --section-gap: 6px;
+    --page-pad: 10px;
+  }
+
   h1 {
-    font-size: clamp(1.15rem, 4vh, 1.5rem);
+    font-size: clamp(1.15rem, 3.5vh, 1.45rem);
   }
 
   .difficulty button {
-    min-height: 40px;
-    padding: 6px 14px;
+    min-height: 38px;
+    padding: 5px 13px;
   }
 
   .moves {
-    padding: 6px 12px;
+    padding: 6px 11px;
   }
 
   .message-slot {
-    min-height: 52px;
+    min-height: 36px;
   }
 
   .restart {
-    margin-top: 10px;
-    min-height: 44px;
-    padding: 9px 26px;
+    margin-top: 6px;
+    min-height: 40px;
+    padding: 8px 24px;
   }
 
-  /* Wide grids keep boards short; caps relate board width to the height
-     left over once headers/buttons take theirs (rows/cols ratios). */
+  .board {
+    --ui-space: 245px;
+  }
+}
+
+/* ---- Very short (phone landscape): widen grids so cards stay usable ---- */
+
+@media (max-width: 1024px) and (max-height: 500px) {
   .board.easy {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: min(100%, calc((100dvh - 240px) * 2));
+    --cols: 4;
+    --rows: 2;
   }
 
   .board.medium {
-    grid-template-columns: repeat(4, 1fr);
-    max-width: min(100%, calc(100dvh - 240px));
+    --cols: 8;
+    --rows: 2;
   }
 
   .board.hard {
-    grid-template-columns: repeat(6, 1fr);
-    max-width: min(100%, calc((100dvh - 240px) / 0.67));
+    --cols: 12;
+    --rows: 2;
+  }
+
+  .board {
+    --ui-space: 235px;
+  }
+
+  h1 {
+    font-size: clamp(1.05rem, 4vh, 1.3rem);
   }
 }
 
