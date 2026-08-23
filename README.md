@@ -5,7 +5,7 @@ A polished and responsive memory card game built with React and Vite. Test your 
 ## Live Demo
 
 ```text
-hhttps://memo-cd-game.vercel.app/
+https://memo-cd-game.vercel.app/
 ```
 
 Replace the URL above with your deployed project link.
